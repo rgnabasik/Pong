@@ -6,7 +6,8 @@ class Ball
   def initialize
     @image = @image3 = Gosu::Image.new("ball.bmp")
     @image2 = Gosu::Image.new("ball2.bmp")
-    @beep = Gosu::Sample.new("Beep.wav")
+    @beep = @sound = Gosu::Sample.new("Beep.wav")
+    @hit = Gosu::Sample.new("hit.wav")
     @x = @y = @vel_x = @vel_y = @angle = 0
   end
   
@@ -31,15 +32,17 @@ class Ball
     if @y > 585 || @y < 15 then #ball image is 30x30 pixels and we are using draw_rot so we need to take 15 away from the edges, bounces off top and bottom edges
       @vel_y *= -1
       @angle += 90
-      @beep.play
+      @sound.play
     end
   end
   
   def draw
     if Gosu::button_down? Gosu::Kb1
       @image3 = @image
+      @sound = @beep
     elsif Gosu::button_down? Gosu::Kb2
       @image3 = @image2
+      @sound = @hit
     end
     @image3.draw_rot(@x,@y,1,0) #same ZOrder as the paddle
   end
@@ -51,7 +54,8 @@ class Player
   def initialize
     @image = @image3 = Gosu::Image.new("paddle.bmp")
     @image2 = Gosu::Image.new("paddle2.bmp")
-    @beep = Gosu::Sample.new("Beep.wav")
+    @beep = @sound = Gosu::Sample.new("Beep.wav")
+    @hit = Gosu::Sample.new("hit.wav")
     @x = @y = @vel_x = @vel_y = @score = 0
   end
   
@@ -84,8 +88,10 @@ class Player
   def draw
     if Gosu::button_down? Gosu::Kb1 #normal
       @image3 = @image
+      @sound = @beep
     elsif Gosu::button_down? Gosu::Kb2 #mlg mode
       @image3 = @image2
+      @sound = @hit
     end
     @image3.draw_rot(@x,@y,1,0)
   end
@@ -98,7 +104,7 @@ class Player
           ball.vel_y *= 1.1
         end
         #puts "#{ball.vel_x}    #{ball.vel_y}"
-        @beep.play
+        @sound.play
       end
     end
   end
@@ -106,7 +112,7 @@ class Player
   def point(ball)
     if ball.x < 15 then
       @score += 1
-      @beep.play
+      @sound.play
       ball.warp(300,300) #restarting the ball
       ball.start
     end
@@ -118,7 +124,8 @@ class Opp
   def initialize
     @image = @image3 = Gosu::Image.new("paddle.bmp")
     @image2 = Gosu::Image.new("paddle2.bmp")
-    @beep = Gosu::Sample.new("Beep.wav")
+    @beep = @sound = Gosu::Sample.new("Beep.wav")
+    @hit = Gosu::Sample.new("hit.wav")
     @x = @y = @vel_x = @vel_y = @score = 0
   end
   
@@ -147,8 +154,10 @@ class Opp
   def draw
     if Gosu::button_down? Gosu::Kb1 #normal
       @image3 = @image
+      @sound = @beep
     elsif Gosu::button_down? Gosu::Kb2 #mlg mode
       @image3 = @image2
+      @sound = @hit
     end
     @image3.draw_rot(@x,@y,1,0)
   end
@@ -161,7 +170,7 @@ class Opp
           ball.vel_y *= 1.1
         end
         #puts "#{ball.vel_x}    #{ball.vel_y}"
-        @beep.play
+        @sound.play
       end
     end
   end
@@ -169,7 +178,7 @@ class Opp
   def point(ball)
     if ball.x > 585 then
       @score += 1
-      @beep.play
+      @sound.play
       ball.warp(300,300) #restarting the ball
       ball.start
     end
