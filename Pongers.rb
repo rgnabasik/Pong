@@ -19,10 +19,6 @@ class Ball
     @vel_y = Gosu::offset_y(@angle,2)    
   end
   
-  def vchange(vel_x,vel_y,angle)
-    @vel_x = Gosu::offset_x(angle,vel_x)
-    @vel_y = Gosu::offset_y(angle,vel_y)
-  end
   
   def move
     @x += @vel_x
@@ -82,7 +78,6 @@ class Player
         ball.vel_y *= -1
         ball.angle += 90 #maybe try to add some velocity to the ball depending on the speed of the paddle
         @beep.play
-        ball.vchange(ball.vel_x,ball.vel_y,ball.angle)
       end
     end
   end
@@ -138,7 +133,6 @@ class Opp
         ball.vel_y *= -1
         ball.angle += 90 #maybe try to add some velocity to the ball depending on the speed of the paddle
         @beep.play
-        ball.vchange(ball.vel_x,ball.vel_y,ball.angle)
       end
     end
   end
