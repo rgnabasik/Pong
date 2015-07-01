@@ -4,7 +4,8 @@ require 'gosu'
 class Ball
   attr_accessor :x, :y, :angle, :vel_x, :vel_y #allows for other classes to change these
   def initialize
-    @image = Gosu::Image.new("ball.bmp")
+    @image = @image3 = Gosu::Image.new("ball.bmp")
+    @image2 = Gosu::Image.new("ball2.bmp")
     @beep = Gosu::Sample.new("Beep.wav")
     @x = @y = @vel_x = @vel_y = @angle = 0
   end
@@ -16,7 +17,7 @@ class Ball
   def start #not sure I understand how the ball is moving
     @angle = rand(20..160)
     @vel_x = Gosu::offset_x(@angle,4)
-    if rand(0.0..1.0) > 0.5
+    if rand(0.0..1.0) > 0.5 #not sure why this is here
       @vel_x *= -1
     end
     @vel_y = Gosu::offset_y(@angle,4)    
@@ -27,7 +28,7 @@ class Ball
     @x += @vel_x
     @y += @vel_y
     
-    if @y > 585 || @y < 15 then #ball image is 30x30 pixels and we are using draw_rot so we need to take 15 away from the edges
+    if @y > 585 || @y < 15 then #ball image is 30x30 pixels and we are using draw_rot so we need to take 15 away from the edges, bounces off top and bottom edges
       @vel_y *= -1
       @angle += 90
       @beep.play
@@ -35,7 +36,12 @@ class Ball
   end
   
   def draw
-    @image.draw_rot(@x,@y,1,0) #same ZOrder as the paddle
+    if Gosu::button_down? Gosu::Kb1
+      @image3 = @image
+    elsif Gosu::button_down? Gosu::Kb2
+      @image3 = @image2
+    end
+    @image3.draw_rot(@x,@y,1,0) #same ZOrder as the paddle
   end
 end
 
@@ -43,7 +49,8 @@ end
 class Player
   attr_reader :score
   def initialize
-    @image = Gosu::Image.new("paddle.bmp")
+    @image = @image3 = Gosu::Image.new("paddle.bmp")
+    @image2 = Gosu::Image.new("paddle2.bmp")
     @beep = Gosu::Sample.new("Beep.wav")
     @x = @y = @vel_x = @vel_y = @score = 0
   end
@@ -60,7 +67,7 @@ class Player
       @vel_y = 5
     end
     
-    @y += @vel_y  #allows for the player to wrap around the game screen
+    @y += @vel_y  
     
     if @y < 87 || @y > 513
       if @y > 513
@@ -75,14 +82,19 @@ class Player
   end
   
   def draw
-    @image.draw_rot(@x,@y,1,0)
+    if Gosu::button_down? Gosu::Kb1 #normal
+      @image3 = @image
+    elsif Gosu::button_down? Gosu::Kb2 #mlg mode
+      @image3 = @image2
+    end
+    @image3.draw_rot(@x,@y,1,0)
   end
   
   def collision(ball) #need to make sure we include the entire paddle
     if ball.x > 570
       if ball.y < @y + 88 and ball.y > @y - 88 then
         if ball.vel_x < 13
-          ball.vel_x *= -1.1
+          ball.vel_x *= -1.1 #speeds up the ball if it is too slow
           ball.vel_y *= 1.1
         end
         #puts "#{ball.vel_x}    #{ball.vel_y}"
@@ -104,7 +116,8 @@ end
 class Opp
   attr_reader :score
   def initialize
-    @image = Gosu::Image.new("paddle.bmp")
+    @image = @image3 = Gosu::Image.new("paddle.bmp")
+    @image2 = Gosu::Image.new("paddle2.bmp")
     @beep = Gosu::Sample.new("Beep.wav")
     @x = @y = @vel_x = @vel_y = @score = 0
   end
@@ -113,16 +126,16 @@ class Opp
     @x, @y = x,y
   end
   
-  def move(ball)
-    if (@y-ball.y) > 0
-      @vel_y = -2
+  def move(ball) #Opp AI
+    if (@y-ball.y) > 0 #paddle above ball
+      @vel_y = -2 #so move down
     else
-      @vel_y = 2
+      @vel_y = 2 #otherwise move up
     end
     
     @y += @vel_y
     
-    if @y < 87 || @y > 513
+    if @y < 87 || @y > 513 #boundary conditions for the paddle
       if @y > 513
         @y = 513
       else
@@ -132,14 +145,19 @@ class Opp
   end
   
   def draw
-    @image.draw_rot(@x,@y,1,0)
+    if Gosu::button_down? Gosu::Kb1 #normal
+      @image3 = @image
+    elsif Gosu::button_down? Gosu::Kb2 #mlg mode
+      @image3 = @image2
+    end
+    @image3.draw_rot(@x,@y,1,0)
   end
   
   def collision(ball) #need to make sure we include the entire paddle
     if ball.x < 30
       if ball.y < @y + 88 and ball.y > @y - 88 then
         if ball.vel_x < 13
-          ball.vel_x *= -1.1
+          ball.vel_x *= -1.1 #speeds up the ball if it is too slow
           ball.vel_y *= 1.1
         end
         #puts "#{ball.vel_x}    #{ball.vel_y}"
@@ -163,7 +181,8 @@ class GameWindow < Gosu::Window  #main game loop
     super 600, 600
     self.caption = "Pong me"
     
-    @bg = Gosu::Image.new("bg.png", :tileable => true)
+    @bg = @bg3 = Gosu::Image.new("bg.png", :tileable => true)
+    @bg2 = Gosu::Image.new("bg2.png", :tileable => true)
     
     @player = Player.new
     @player.warp(590,300)
@@ -177,12 +196,14 @@ class GameWindow < Gosu::Window  #main game loop
     
     @font = Gosu::Font.new(20)
     @font2 = Gosu::Font.new(20)
+    
+    @win = Gosu::Font.new(60)
   end
   
   def update
     @player.move
     @ball.move
-    @opp.move(@ball) #opp still won't move, also bounces off paddles go the wrong way
+    @opp.move(@ball) 
     @player.point(@ball)
     @player.collision(@ball)
     @opp.point(@ball)
@@ -194,9 +215,18 @@ class GameWindow < Gosu::Window  #main game loop
     @player.draw
     @ball.draw
     @opp.draw
-    @bg.draw(0,0,0)
+    if Gosu::button_down? Gosu::Kb1 #normal
+      @bg3 = @bg
+    elsif Gosu::button_down? Gosu::Kb2 #mlg mode
+      @bg3 = @bg2
+    end
+    @bg3.draw(0,0,0)
     @font.draw("Score: #{@player.score}", 310, 10, 2, 1.0, 1.0, 0xff_ffff00)
     @font2.draw("Score: #{@opp.score}", 10, 10, 2, 1.0, 1.0, 0xff_ffff00)
+    if @player.score == 5 then #win condition for player, no win condition for the AI
+      @win.draw("The player wins!!!",100,300,2,1.0,1.0,0xff_ffff00)
+      @ball.warp(300,300) #puts the ball in the center with no velocity
+    end
   end
 end
 
