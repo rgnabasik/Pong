@@ -15,11 +15,11 @@ class Ball
   
   def start #not sure I understand how the ball is moving
     @angle = rand(20..160)
-    @vel_x = Gosu::offset_x(@angle,2)
+    @vel_x = Gosu::offset_x(@angle,4)
     if rand(0.0..1.0) > 0.5
       @vel_x *= -1
     end
-    @vel_y = Gosu::offset_y(@angle,2)    
+    @vel_y = Gosu::offset_y(@angle,4)    
   end
   
   
@@ -52,19 +52,23 @@ class Player
     @x, @y = x,y
   end
   
-  def move_up
-    @vel_y += Gosu::offset_y(0,0.5)
-  end
-  
-  def move_down
-    @vel_y -= Gosu::offset_y(0,0.5)
-  end
-  
   def move
-    @x += @vel_x #obviously should not be moving in the x direction but might add something later on
-    @y += @vel_y
-    @x %= 600    #allows for the player to wrap around the game screen
-    @y %= 600
+    if Gosu::button_down? Gosu::KbUp 
+      @vel_y = -5
+    end
+    if Gosu::button_down? Gosu::KbDown
+      @vel_y = 5
+    end
+    
+    @y += @vel_y  #allows for the player to wrap around the game screen
+    
+    if @y < 87 || @y > 513
+      if @y > 513
+        @y = 513
+      else
+        @y = 87
+      end
+    end
     
     @vel_x *= 0.95 #should slow down the paddle when not pressing anything, basically a damping mechanism
     @vel_y *= 0.95    
@@ -77,8 +81,11 @@ class Player
   def collision(ball) #need to make sure we include the entire paddle
     if ball.x > 570
       if ball.y < @y + 88 and ball.y > @y - 88 then
-        ball.vel_x *= -1
-        ball.angle += 90 #maybe try to add some velocity to the ball depending on the speed of the paddle
+        if ball.vel_x < 13
+          ball.vel_x *= -1.1
+          ball.vel_y *= 1.1
+        end
+        #puts "#{ball.vel_x}    #{ball.vel_y}"
         @beep.play
       end
     end
@@ -106,22 +113,22 @@ class Opp
     @x, @y = x,y
   end
   
-  def move_up(ball)
-    @vel_y += Gosu::offset_y(0,0.5)
-  end
-  
-  def move_down(ball)
-     @vel_y -= Gosu::offset_y(0,0.5)
-  end
-  
   def move(ball)
-    @x += @vel_x #obviously should not be moving in the x direction but might add something later on
-    @y += @vel_y
-    @x %= 600    #allows for the player to wrap around the game screen
-    @y %= 600
+    if (@y-ball.y) > 0
+      @vel_y = -2
+    else
+      @vel_y = 2
+    end
     
-    @vel_x *= 0.95 #should slow down the paddle when not pressing anything, basically a damping mechanism
-    @vel_y *= 0.95    
+    @y += @vel_y
+    
+    if @y < 87 || @y > 513
+      if @y > 513
+        @y = 513
+      else
+        @y = 87
+      end
+    end   
   end
   
   def draw
@@ -131,8 +138,11 @@ class Opp
   def collision(ball) #need to make sure we include the entire paddle
     if ball.x < 30
       if ball.y < @y + 88 and ball.y > @y - 88 then
-        ball.vel_x *= -1
-        ball.angle += 90 #maybe try to add some velocity to the ball depending on the speed of the paddle
+        if ball.vel_x < 13
+          ball.vel_x *= -1.1
+          ball.vel_y *= 1.1
+        end
+        #puts "#{ball.vel_x}    #{ball.vel_y}"
         @beep.play
       end
     end
@@ -170,12 +180,6 @@ class GameWindow < Gosu::Window  #main game loop
   end
   
   def update
-    if Gosu::button_down? Gosu::KbUp then
-      @player.move_up
-    end
-    if Gosu::button_down? Gosu::KbDown
-      @player.move_down
-    end
     @player.move
     @ball.move
     @opp.move(@ball) #opp still won't move, also bounces off paddles go the wrong way
