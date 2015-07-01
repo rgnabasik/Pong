@@ -14,8 +14,11 @@ class Ball
   end
   
   def start #not sure I understand how the ball is moving
-    @angle = rand(360)
+    @angle = rand(20..160)
     @vel_x = Gosu::offset_x(@angle,2)
+    if rand(0.0..1.0) > 0.5
+      @vel_x *= -1
+    end
     @vel_y = Gosu::offset_y(@angle,2)    
   end
   
@@ -75,7 +78,6 @@ class Player
     if ball.x > 570
       if ball.y < @y + 88 and ball.y > @y - 88 then
         ball.vel_x *= -1
-        ball.vel_y *= -1
         ball.angle += 90 #maybe try to add some velocity to the ball depending on the speed of the paddle
         @beep.play
       end
@@ -130,7 +132,6 @@ class Opp
     if ball.x < 30
       if ball.y < @y + 88 and ball.y > @y - 88 then
         ball.vel_x *= -1
-        ball.vel_y *= -1
         ball.angle += 90 #maybe try to add some velocity to the ball depending on the speed of the paddle
         @beep.play
       end
